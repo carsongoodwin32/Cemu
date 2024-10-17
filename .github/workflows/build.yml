@@ -174,8 +174,9 @@ jobs:
       with:
         name: cemu-bin-windows-x64
         path: ./bin/Cemu.exe
-
-  runs-on: macos-14
+        
+  build-macos:
+    runs-on: macos-14
     steps:
     - name: "Checkout repo"
       uses: actions/checkout@v4
