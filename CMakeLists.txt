@@ -5,18 +5,38 @@ option(ENABLE_VCPKG "Enable the vcpkg package manager" ON)
 cmake_dependent_option(MACOS_BUNDLE "The executable when built on macOS will be created as an application bundle" ON "APPLE" OFF)
 set(EXPERIMENTAL_VERSION "" CACHE STRING "") # used by CI script to set experimental version
 
-if (EXPERIMENTAL_VERSION)
-	add_definitions(-DEMULATOR_VERSION_MINOR=${EXPERIMENTAL_VERSION})
-	execute_process(
-			COMMAND git log --format=%h -1
-			WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-			OUTPUT_VARIABLE GIT_HASH
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	add_definitions(-DEMULATOR_HASH=${GIT_HASH})
-endif()
+# used by CI script to set version:
+set(EMULATOR_VERSION_MAJOR "0" CACHE STRING "")
+set(EMULATOR_VERSION_MINOR "0" CACHE STRING "")
+set(EMULATOR_VERSION_PATCH "0" CACHE STRING "")
+
+execute_process(
+		COMMAND git log --format=%h -1
+		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+		OUTPUT_VARIABLE GIT_HASH
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+add_definitions(-DEMULATOR_HASH=${GIT_HASH})
 
 if (ENABLE_VCPKG)
+	# check if vcpkg is shallow and unshallow it if necessary
+	execute_process(
+	COMMAND git rev-parse --is-shallow-repository
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/dependencies/vcpkg
+	OUTPUT_VARIABLE is_vcpkg_shallow
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+	if(is_vcpkg_shallow STREQUAL "true")
+		message(STATUS "vcpkg is shallow. Unshallowing it now...")
+		execute_process(
+			COMMAND git fetch --unshallow
+			WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/dependencies/vcpkg"
+			RESULT_VARIABLE result
+			OUTPUT_VARIABLE output
+		)
+	endif()
+
 	if(UNIX AND NOT APPLE)
 		set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_LIST_DIR}/dependencies/vcpkg_overlay_ports_linux")
 	elseif(APPLE)
@@ -45,6 +65,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_definitions($<$<CONFIG:Debug>:CEMU_DEBUG_ASSERT>) # if build type is debug, set CEMU_DEBUG_ASSERT
 
+add_definitions(-DEMULATOR_VERSION_MAJOR=${EMULATOR_VERSION_MAJOR})
+add_definitions(-DEMULATOR_VERSION_MINOR=${EMULATOR_VERSION_MINOR})
+add_definitions(-DEMULATOR_VERSION_PATCH=${EMULATOR_VERSION_PATCH})
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # enable link time optimization for release builds
@@ -70,6 +94,7 @@ endif()
 
 if (APPLE)
     enable_language(OBJC OBJCXX)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -77,10 +102,20 @@ if (UNIX AND NOT APPLE)
 	option(ENABLE_FERAL_GAMEMODE "Enables Feral Interactive GameMode Support" ON)
 endif()
 
+if (APPLE)
+    set(ENABLE_METAL_DEFAULT ON)
+else()
+    set(ENABLE_METAL_DEFAULT OFF)
+endif()
+
 option(ENABLE_OPENGL "Enables the OpenGL backend" ON)
 option(ENABLE_VULKAN "Enables the Vulkan backend" ON)
+option(ENABLE_METAL "Enables the Metal backend" ${ENABLE_METAL_DEFAULT})
 option(ENABLE_DISCORD_RPC "Enables the Discord Rich Presence feature" ON)
 
+if (ENABLE_METAL AND NOT APPLE)
+    message(FATAL_ERROR "Metal backend is only supported on Apple platforms")
+endif()
 
 # input backends
 if (WIN32)
@@ -166,6 +201,10 @@ if (ENABLE_OPENGL)
 	find_package(OpenGL REQUIRED)
 endif()
 
+if (ENABLE_METAL)
+    include_directories(${CMAKE_SOURCE_DIR}/dependencies/metal-cpp)
+endif()
+
 if (ENABLE_DISCORD_RPC)
 	add_compile_definitions(ENABLE_DISCORD_RPC)
 	add_subdirectory(dependencies/discord-rpc EXCLUDE_FROM_ALL)
@@ -192,7 +231,7 @@ endif()
 
 if (ENABLE_CUBEB)
 	if (NOT ENABLE_VCPKG)
-	find_package(cubeb)
+	    find_package(cubeb)
 	endif()
 	if (NOT cubeb_FOUND)
 		option(BUILD_TESTS "" OFF)

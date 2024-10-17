@@ -17,9 +17,10 @@
          - [Building Errors](#building-errors)
 - [macOS](#macos)
    - [Installing brew](#installing-brew)
-   - [Installing Dependencies](#installing-dependencies)
-   - [Build Cemu using CMake and Clang](#build-cemu-using-cmake-and-clang)
-   - [Updating Cemu and source code](#updating-cemu-and-source-code)
+   - [Installing Tool Dependencies](#installing-tool-dependencies)
+   - [Installing Library Dependencies](#installing-library-dependencies)
+   - [Build Cemu using CMake](#build-cemu-using-cmake)
+- [Updating Cemu and source code](#updating-cemu-and-source-code)
 
 ## Windows
 
@@ -151,11 +152,10 @@ Note that if you are compiling on/for Intel, you must replace all references of 
 1. `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 2. `eval "$(/opt/homebrew/bin/brew shellenv)"` # set brew env
 
-### Installing Dependencies
+`brew install boost molten-vk`
 
-`brew install boost git cmake llvm ninja nasm molten-vk automake libtool`
+### Build Cemu using CMake
 
-### Build Cemu using CMake and Clang
 1. `git clone --recursive https://github.com/cemu-project/Cemu`
 2. `cd Cemu`
 3. `cmake -S . -B build -DCMAKE_BUILD_TYPE=release -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ -G Ninja`

@@ -28,7 +28,7 @@ private:
 
 	bool m_has_account_change = false; // keep track of dirty state of accounts
 
-	
+
 	wxPanel* AddGeneralPage(wxNotebook* notebook);
 	wxPanel* AddGraphicsPage(wxNotebook* notebook);
 	wxPanel* AddAudioPage(wxNotebook* notebook);
@@ -41,7 +41,7 @@ private:
 	wxCheckBox* m_save_window_position_size;
 	wxCheckBox* m_save_padwindow_position_size;
 	wxCheckBox* m_discord_presence, *m_fullscreen_menubar;
-	wxCheckBox* m_auto_update, *m_save_screenshot;
+	wxCheckBox* m_auto_update, *m_receive_untested_releases, *m_save_screenshot;
 	wxCheckBox* m_disable_screensaver;
 #if BOOST_OS_LINUX && defined(ENABLE_FERAL_GAMEMODE)
    	wxCheckBox* m_feral_gamemode;
@@ -52,7 +52,7 @@ private:
 	// Graphics
 	wxChoice* m_graphic_api, * m_graphic_device;
 	wxChoice* m_vsync;
-	wxCheckBox *m_async_compile, *m_gx2drawdone_sync;
+	wxCheckBox *m_async_compile, *m_fast_math, *m_gx2drawdone_sync;
 	wxRadioBox* m_upscale_filter, *m_downscale_filter, *m_fullscreen_scaling;
 	wxChoice* m_overlay_position, *m_notification_position, *m_overlay_scale, *m_notification_scale;
 	wxCheckBox* m_controller_profile_name, *m_controller_low_battery, *m_shader_compiling, *m_friends_data;
@@ -106,11 +106,10 @@ private:
 	void UpdateAudioDevice();
 	// refreshes audio device list for dropdown
 	void UpdateAudioDeviceList();
-	
+
 	void ResetAccountInformation();
 	void UpdateAccountInformation();
 	void UpdateOnlineAccounts();
 	void HandleGraphicsApiSelection();
 	void ApplyConfig();
 };
-

@@ -1,6 +1,12 @@
 project(CemuAsm C)
 
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+if (CMAKE_OSX_ARCHITECTURES)
+    set(CEMU_ASM_ARCHITECTURE ${CMAKE_OSX_ARCHITECTURES})
+else()
+    set(CEMU_ASM_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
+if (CEMU_ASM_ARCHITECTURE MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
 
 	if (WIN32)
 
@@ -39,6 +45,7 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
 		set_target_properties(CemuAsm PROPERTIES LINKER_LANGUAGE C)
 
 	endif()
+
 
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(aarch64)|(AARCH64)|(arm64)(ARM64)")
 	add_library(CemuAsm stub.cpp)
